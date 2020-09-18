@@ -1,4 +1,5 @@
 .idea
 t12020.iml
 sum
-out/*
+out
+output
