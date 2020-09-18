@@ -5,12 +5,12 @@ import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
-public class EliasGammaEncoder implements Encoder {
+import utility.StringUtils;
+import utility.MathUtils;
+public class EliasGammaEncoder extends Encoder {
     private final String STOP_BIT = "1";
     private final String UNARY_BIT = "0";
-
 
     @Override
     public byte[] encodeText(String text) {
@@ -34,9 +34,9 @@ public class EliasGammaEncoder implements Encoder {
     public String encodeNumber(int number) {
         String encoded = "";
 
-        int unaryPart = (int)Math.floor(customLog(2, number));
+        int unaryPart = (int)Math.floor(MathUtils.customLog(2, number));
 
-        encoded += createStringSequence(UNARY_BIT, unaryPart);
+        encoded += StringUtils.createStringSequence(UNARY_BIT, unaryPart);
         encoded += STOP_BIT;
 
         int binaryPart = number - (int)Math.pow(2,unaryPart);
@@ -46,7 +46,7 @@ public class EliasGammaEncoder implements Encoder {
         int leadingZeroes = unaryPart - binaryEncoded.length();
 
         if (leadingZeroes > 0) {
-            encoded += createStringSequence("0", leadingZeroes);
+            encoded += StringUtils.createStringSequence("0", leadingZeroes);
         }
 
         encoded += binaryEncoded;
@@ -82,11 +82,4 @@ public class EliasGammaEncoder implements Encoder {
         return decodeText(text.substring(unaryPart*2 + 1), decoded);
     }
 
-    private String createStringSequence(String character, int sequence) {
-        return IntStream.range(0, sequence).mapToObj(i -> character).collect(Collectors.joining(""));
-    }
-
-    private double customLog(double base, double logNumber) {
-        return Math.log(logNumber) / Math.log(base);
-    }
 }
