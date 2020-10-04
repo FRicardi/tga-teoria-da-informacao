@@ -1,5 +1,7 @@
 package encodings;
 
+import ecc.Crc;
+import ecc.impl.Crc8;
 import utility.StringUtils;
 
 import java.io.ByteArrayOutputStream;
@@ -17,11 +19,21 @@ public abstract class Encoder {
 
     public byte[] encodeText(String text) {
         List<Integer> asciiValue = text.chars().mapToObj(c -> (char) c).map(character -> (int) character).collect(Collectors.toList());
-
         List<String> encodedChars = asciiValue.stream().map(this::encodeNumber).collect(Collectors.toList());
-        encodedChars.add(0, StringUtils.getByteFromNumber(this.getCode()));
-        encodedChars.add(1, StringUtils.getByteFromNumber(this.getDivider()));
-        return byteStringListToByteArray(encodedChars);
+        return byteStringListToByteArray(addHeadersToByteList(encodedChars));
+    }
+
+    protected List<String> addHeadersToByteList(List<String> byteList) {
+        Crc crc = new Crc8();
+        String code = StringUtils.getByteFromNumber(this.getCode());
+        String divider = StringUtils.getByteFromNumber(this.getDivider());
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        baos.write(this.getCode() & 0xFF);
+        baos.write(this.getDivider() & 0xFF);
+        byteList.add(0, code);
+        byteList.add(1, divider);
+        byteList.add(2, StringUtils.getByteFromNumber(crc.checksumResult(baos.toByteArray())));
+        return byteList;
     }
 
     protected byte[] byteStringListToByteArray(List<String> byteStringList) {
