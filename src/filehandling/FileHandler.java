@@ -15,8 +15,12 @@ public interface FileHandler {
 
     String readStringFromFile(File file) throws IOException;
 
-    String[] getInputFiles();
+    String[] getTextFiles();
 
-    File selectInputFile();
+    String[] getEncodedFiles();
+
+    File selectEncodedFile();
+
+    File selectTextFile();
 
 }
