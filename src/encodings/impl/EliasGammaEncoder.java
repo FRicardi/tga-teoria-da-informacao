@@ -6,6 +6,8 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import enumerators.EncodersEnum;
+import mappings.EncoderMapping;
 import utility.StringUtils;
 import utility.MathUtils;
 public class EliasGammaEncoder extends Encoder {
@@ -13,21 +15,9 @@ public class EliasGammaEncoder extends Encoder {
     private final String UNARY_BIT = "0";
 
     @Override
-    public byte[] encodeText(String text) {
-        List<Integer> asciiValue = text.chars().mapToObj(c -> (char) c).map(character -> (int) character).collect(Collectors.toList());
-
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-
-        List<String> encodedChars = asciiValue.stream().map(this::encodeNumber).collect(Collectors.toList());
-
-        for (String encodedChar : encodedChars) {
-            byte[] bytes = (new BigInteger(encodedChar, 2).toByteArray());
-            for(byte b : bytes) {
-                buffer.write(b);
-            }
-        }
-
-        return buffer.toByteArray();
+    public int getCode() {
+        EncoderMapping em = new EncoderMapping();
+        return em.getEncoderData(EncodersEnum.ELIAS_GAMMA).getCode();
     }
 
     @Override
@@ -61,20 +51,15 @@ public class EliasGammaEncoder extends Encoder {
 
     @Override
     public String decode(byte[] buffer) {
-        StringBuilder decoded = new StringBuilder();
-
-        for (byte b : buffer) {
-            decoded.append((char) b);
-        }
-
-        return decoded.toString();
+        return decodeText(StringUtils.concatByteArrayWithOffset(buffer, 2), "");
     }
 
     public String decodeText(String text, String decoded) {
-        if (text.isEmpty()) {
+        if (text.isEmpty() || !text.contains(STOP_BIT)) {
             return decoded;
         }
         int unaryPart = text.indexOf(STOP_BIT);
+
         int binaryPart = Integer.parseInt(text.substring(unaryPart + 1, unaryPart * 2 + 1), 2);
 
         decoded += new String(Character.toChars(binaryPart + (int) Math.pow(2, unaryPart)));
