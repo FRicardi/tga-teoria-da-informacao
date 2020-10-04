@@ -2,111 +2,88 @@ package encodings.impl;
 
 import encodings.Encoder;
 
+import enumerators.EncodersEnum;
+import mappings.EncoderMapping;
 import utility.StringUtils;
 import utility.MathUtils;
 
 public class GolombEncoder extends Encoder {
 
-    private final int DIVIDER = 10;
-    private final String REPEAT_BIT = "0";
-    private final String STOP_BIT = "1";
+    private final int DIVIDER = 64;
+    private final String REPEAT_BIT = "1";
+    private final String STOP_BIT = "0";
+
+
+
+    @Override
+    public int getDivider() {
+        return DIVIDER;
+    }
+
+    @Override
+    public int getCode() {
+        EncoderMapping em = new EncoderMapping();
+        return em.getEncoderData(EncodersEnum.GOLOMB).getCode();
+    }
 
     @Override
     public String encodeNumber(int number) {
-        int quocient = (int) number/DIVIDER;
-        int remainder = number % DIVIDER;
 
-        String quocientBinary = StringUtils.createStringSequence(REPEAT_BIT, quocient) + STOP_BIT;
+        int suffixLength = (int) MathUtils.customLog(2, DIVIDER);
 
-        int b = (int) MathUtils.customLog(2, DIVIDER);
+        int suffix = number % DIVIDER;
 
-        int remainderBinaryLength = b;
-        int lengthEquation = (int) Math.pow(2, b+1) - DIVIDER;
-        if (b >= lengthEquation) {
-            remainderBinaryLength += 1;
-            remainder += lengthEquation;
+        int prefix = number / DIVIDER;
+
+        String prefixBinary = StringUtils.createStringSequence(REPEAT_BIT, prefix) + STOP_BIT;
+
+        String suffixBinary = Integer.toBinaryString(suffix);
+        if (suffixBinary.length() < suffixLength) {
+            suffixBinary = StringUtils.createStringSequence("0", suffixLength - suffixBinary.length()) + suffixBinary;
         }
 
-        String remainderBinary = Integer.toBinaryString(remainder);
+        return prefixBinary + suffixBinary;
 
-        if(remainderBinary.length() < remainderBinaryLength) {
-            remainderBinary = StringUtils.createStringSequence("0", remainderBinaryLength - remainderBinary.length()) + remainderBinary;
-        }
-
-        return quocientBinary + remainderBinary;
     }
 
     @Override
     public String decode(String text) {
-        int repeatCounter = 0;
-        char[] splitString = text.toCharArray();
-        if(text.isEmpty() || text.indexOf("1") == -1) {
-            return "";
+        return this.decode(text, 0);
+    }
+
+    private String decode(String text, int divider) {
+        StringBuilder decoded = new StringBuilder();
+
+        if (divider == 0) {
+            divider = DIVIDER;
         }
 
-        double bits = (Math.log(DIVIDER) / Math.log(2.0));
-        int treshNumber = (int)(Math.pow(2, Math.floor(bits) + 1) - DIVIDER);
-        boolean powerTwo = Math.floor(bits) == bits;
+        while(!text.isEmpty() && text.contains("1")) {
+            int prefixCounter = 0;
+            char[] splitString = text.toCharArray();
 
-        int b = (int) MathUtils.customLog(2, DIVIDER);
-        int remainderBinaryLength = b;
-        int remainder = 0;
-        int lengthEquation = (int) Math.pow(2, b+1) - DIVIDER;
-        if (b >= lengthEquation) {
-            remainderBinaryLength += 1;
+            int suffixLength = (int) MathUtils.customLog(2, divider);
+
+            while (splitString[prefixCounter] == (REPEAT_BIT.charAt(0))) {
+                prefixCounter++;
+            }
+
+            int prefix = prefixCounter * divider;
+
+            int suffixStart = text.indexOf(STOP_BIT) + 1;
+            int x = Integer.parseInt(text.substring(suffixStart, suffixStart + suffixLength), 2);
+            text = text.substring(suffixStart + suffixLength);
+            decoded.append(Character.toChars(prefix + x));
+            System.out.print(Character.toChars(prefix + x));
         }
-        if (remainder >= 10) {
-            remainder -= 10;
-            repeatCounter++;
-        }
-        while(splitString[repeatCounter] == (REPEAT_BIT.charAt(0))){
-            repeatCounter++;
-        }
-//
-        int startingIndex = text.indexOf(STOP_BIT) + 1;
-        String currentSubstring = text.substring(startingIndex, startingIndex + remainderBinaryLength);
 
-//        String test = text.substring(0, startingIndex + remainderBinaryLength);
-
-        remainder += Integer.parseInt(currentSubstring, 2);
-
-        String nextString = text.substring(startingIndex + remainderBinaryLength + 1);
-        return new String(Character.toChars(Integer.parseInt(repeatCounter + "" + remainder) + DIVIDER)) + decode(nextString);
+        return decoded.toString();
     }
 
     @Override
     public String decode(byte[] buffer) {
-        StringBuilder decoded = new StringBuilder();
-        for (byte b : buffer) {
-            double bits = (Math.log(DIVIDER) / Math.log(2.0));
-            int treshNumber = (int)(Math.pow(2, Math.floor(bits) + 1) - DIVIDER);
-            boolean powerTwo = Math.floor(bits) == bits;
-
-            int qPart = 0;
-            int rPart = 0;
-            int j = 1;
-            while ((j <= b) && ((b & j) == 1)) {
-                qPart++;
-                j <<= 1;
-            }
-
-            for (int x = 0; x < (Math.floor(bits)); x++) {
-                j <<= 1;
-                rPart = rPart << 1 | b & j;
-            }
-
-            if (!powerTwo && rPart >= treshNumber) {
-                j <<= 1;
-                rPart = rPart << 1 | b & j;
-                rPart = (int) (rPart - treshNumber);
-            }
-
-
-            decoded.append((char) (qPart * DIVIDER + rPart));
-        }
-
-
-        return decoded.toString();
+        int divider = buffer[0];
+        return decode(StringUtils.concatByteArrayWithOffset(buffer, 2), divider);
     }
 
 
