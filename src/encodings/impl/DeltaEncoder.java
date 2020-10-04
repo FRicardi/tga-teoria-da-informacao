@@ -28,9 +28,7 @@ public class DeltaEncoder extends Encoder {
             last = asciiValue.get(i);
         }
 
-        encodedChars.add(0, StringUtils.getByteFromNumber(this.getCode()));
-        encodedChars.add(1, StringUtils.getByteFromNumber(this.getDivider()));
-        return super.byteStringListToByteArray(encodedChars);
+        return super.byteStringListToByteArray(addHeadersToByteList(encodedChars));
     }
 
     @Override
