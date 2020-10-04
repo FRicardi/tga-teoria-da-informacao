@@ -5,7 +5,9 @@ import filehandling.FileHandler;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Scanner;
 
 public class DefaultFileHandler implements FileHandler {
@@ -17,6 +19,8 @@ public class DefaultFileHandler implements FileHandler {
 
     private final String OUTPUT_PATH = "/output";
     private final String INPUT_PATH = "/input";
+    private final String TXT_EXT = ".txt";
+    private final String COD_EXT = ".cod";
 
     public DefaultFileHandler() {
         rootDir = (new File("")).getAbsoluteFile();
@@ -51,30 +55,72 @@ public class DefaultFileHandler implements FileHandler {
     }
 
     @Override
-    public String[] getInputFiles() {
-        return inputDir.list();
+    public String[] getTextFiles() {
+        return getDirFilesByDirAndExtension(inputDir, TXT_EXT);
     }
 
     @Override
-    public File selectInputFile() {
-        String[] pathFiles = getInputFiles();
-        System.out.println("Output files:");
+    public String[] getEncodedFiles() {
+        String[] inputDirFiles = appendPathToFiles(getDirFilesByDirAndExtension(inputDir, COD_EXT), INPUT_PATH) ;
+        String[] outputDirFiles = appendPathToFiles(getDirFilesByDirAndExtension(outputDir, COD_EXT), OUTPUT_PATH);
 
-        for (int i = 0; i < pathFiles.length; i++) {
-            System.out.println((i + 1) + " - " + pathFiles[i] + "\n");
+        return combineArrays(inputDirFiles, outputDirFiles);
+
+    }
+
+    private String[] appendPathToFiles(String[] files, String dirPath) {
+        for (int i = 0; i < files.length; i ++) {
+            files[i] = dirPath + "/" + files[i];
+        }
+
+        return files;
+    }
+
+    private String[] getDirFilesByDirAndExtension(File dir, String extension) {
+        return Arrays.stream(Objects.requireNonNull(dir.list())).filter(s -> s.endsWith(extension)).toArray(String[]::new);
+    }
+
+    @Override
+    public File selectEncodedFile() {
+        String[] pathFiles = getEncodedFiles();
+
+        return selectFileFromOptions(pathFiles, rootDir);
+    }
+
+    @Override
+    public File selectTextFile() {
+        String[] pathFiles = getTextFiles();
+
+        return selectFileFromOptions(pathFiles, inputDir);
+    }
+
+    private File selectFileFromOptions(String[] files, File dir) {
+        System.out.println("Files:");
+
+        for (int i = 0; i < files.length; i++) {
+            System.out.println((i + 1) + " - " + files[i] + "\n");
         }
 
 
         System.out.println("Choose a file.");
         int choice = scanner.nextInt();
 
-        while(choice > pathFiles.length || choice < 1) {
+        while(choice > files.length || choice < 1) {
             System.out.println("Please, select a valid file.");
             choice = scanner.nextInt();
         }
 
 
-        return new File(inputDir.getAbsolutePath() + "/" + pathFiles[choice - 1]);
+        return new File(dir.getAbsolutePath() + "/" + files[choice - 1]);
+
+    }
+
+    private static String[] combineArrays(String[] a, String[] b){
+        int length = a.length + b.length;
+        String[] result = new String[length];
+        System.arraycopy(a, 0, result, 0, a.length);
+        System.arraycopy(b, 0, result, a.length, b.length);
+        return result;
     }
 
 }
