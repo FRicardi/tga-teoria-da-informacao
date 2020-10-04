@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 public class DeltaEncoder extends Encoder {
 
     private final static int ENCODED_LENGTH = 8;
-
+    private final static int CODE_START_INDEX = 2;
 
     @Override
     public int getCode() {
@@ -55,8 +55,8 @@ public class DeltaEncoder extends Encoder {
         StringBuilder decodedBuffer = new StringBuilder();
 
         int last = 0;
-        decodedBuffer.append((char) buffer[2]);
-        for (int i = 2; i < buffer.length; i++) {
+        decodedBuffer.append((char) buffer[CODE_START_INDEX]);
+        for (int i = CODE_START_INDEX; i < buffer.length; i++) {
             int delta =  buffer[i] + last;
             decodedBuffer.append((char) (delta < 0 ? delta + 256 : delta));
             last = buffer[i] + last;
