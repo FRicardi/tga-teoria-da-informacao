@@ -62,13 +62,6 @@ public class FibonacciEncoder extends Encoder {
         return codewordBuilder.toString();
     }
 
-    @Override
-    public String decode(byte[] buffer) {
-
-        return decode(StringUtils.concatByteArrayWithOffset(buffer, 2));
-
-    }
-
     private void startFibonacci() {
         fibonaccis = new ArrayList<>();
         fibonaccis.add(0, 1);

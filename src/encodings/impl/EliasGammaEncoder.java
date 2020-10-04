@@ -51,7 +51,7 @@ public class EliasGammaEncoder extends Encoder {
 
     @Override
     public String decode(byte[] buffer) {
-        return decodeText(StringUtils.concatByteArrayWithOffset(buffer, 2), "");
+        return decodeText(StringUtils.concatByteArrayWithOffset(buffer, CODE_START_INDEX), "");
     }
 
     public String decodeText(String text, String decoded) {

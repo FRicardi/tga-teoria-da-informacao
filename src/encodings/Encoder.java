@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public abstract class Encoder {
+    protected final static int CODE_START_INDEX = 3;
 
     public int getDivider() {
         return 0;
@@ -46,5 +47,7 @@ public abstract class Encoder {
 
     abstract public String decode(String text);
 
-    abstract public String decode(byte[] buffer);
+    public String decode(byte[] buffer) {
+        return decode(StringUtils.concatByteArrayWithOffset(buffer, CODE_START_INDEX));
+    }
 }

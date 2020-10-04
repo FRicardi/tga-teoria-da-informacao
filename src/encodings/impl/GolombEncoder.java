@@ -83,7 +83,7 @@ public class GolombEncoder extends Encoder {
     @Override
     public String decode(byte[] buffer) {
         int divider = buffer[0];
-        return decode(StringUtils.concatByteArrayWithOffset(buffer, 2), divider);
+        return decode(StringUtils.concatByteArrayWithOffset(buffer, CODE_START_INDEX), divider);
     }
 
 

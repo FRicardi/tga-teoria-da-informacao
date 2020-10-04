@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 public class DeltaEncoder extends Encoder {
 
     private final static int ENCODED_LENGTH = 8;
-    private final static int CODE_START_INDEX = 2;
 
     @Override
     public int getCode() {

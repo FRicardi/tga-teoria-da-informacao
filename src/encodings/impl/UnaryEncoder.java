@@ -29,9 +29,4 @@ public class UnaryEncoder extends Encoder {
 
         return decodedBuilder.toString();
     }
-
-    @Override
-    public String decode(byte[] buffer) {
-        return decode(StringUtils.concatByteArrayWithOffset(buffer, 2));
-    }
 }
